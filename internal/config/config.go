@@ -1,17 +1,17 @@
 package config
 
 import (
-	"os"
-	"io"
 	"encoding/json"
+	"io"
+	"os"
 	"path/filepath"
 )
 
 const configFileName = ".gatorconfig.json"
 
 type Config struct {
-	DbURL			string `json:"db_url"`
-	CurrentUserName	string `json:"current_user_name"`
+	DbURL           string `json:"db_url"`
+	CurrentUserName string `json:"current_user_name"`
 }
 
 func (cfg *Config) SetUser() error {
