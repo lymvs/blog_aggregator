@@ -37,6 +37,7 @@ func main() {
 
 	commands.Register("login", config.HandlerLogin)
 	commands.Register("register", config.HandlerRegister)
+	commands.Register("reset", config.Reset)
 
 	args := os.Args[1:] //ignore first argument, that is the program name
 
@@ -54,12 +55,4 @@ func main() {
 		fmt.Printf("command execution failed: %v\n", err)
 		os.Exit(1)
 	}
-
-	// cfg_updated, err := config.Read()
-	// if err != nil {
-	// 	fmt.Println(errors.New("error reading the file"))
-	// }
-
-	// fmt.Printf("db_url: %s\n", cfg_updated.DbURL)
-	// fmt.Printf("current_user_name: %s\n", cfg_updated.CurrentUserName)
 }

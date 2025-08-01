@@ -78,3 +78,12 @@ func HandlerRegister(s *State, cmd Command) error {
 	fmt.Println("User registered sucessfully.")
 	return nil
 }
+
+func Reset(s *State, cmd Command) error {
+	if err := s.Db.DeleteUsers(context.Background()); err != nil {
+		fmt.Println("Users couldn't be deleted")
+		os.Exit(1)
+	}
+	fmt.Println("Users deleted sucessfully")
+	return nil
+}
