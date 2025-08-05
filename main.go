@@ -38,6 +38,7 @@ func main() {
 	commands.Register("login", config.HandlerLogin)
 	commands.Register("register", config.HandlerRegister)
 	commands.Register("reset", config.Reset)
+	commands.Register("users", config.Users)
 
 	args := os.Args[1:] //ignore first argument, that is the program name
 

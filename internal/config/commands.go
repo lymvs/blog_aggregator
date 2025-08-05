@@ -87,3 +87,20 @@ func Reset(s *State, cmd Command) error {
 	fmt.Println("Users deleted sucessfully")
 	return nil
 }
+
+func Users(s *State, cmd Command) error {
+	users_list, err := s.Db.GetUsers(context.Background())
+
+	if err != nil {
+		return err
+	}
+
+	for _, user := range users_list {
+		if user.Name == s.Cfg.CurrentUserName {
+			fmt.Printf("%s (current)\n", user.Name)
+			continue
+		}
+		fmt.Printf("%s\n", user.Name)
+	}
+	return nil
+}
