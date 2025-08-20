@@ -2,13 +2,18 @@ package config
 
 import (
 	"context"
+	"encoding/xml"
 	"errors"
 	"fmt"
+	"html"
+	"io"
+	"net/http"
 	"os"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/lymvs/blog_aggregator/internal/database"
+	"github.com/lymvs/blog_aggregator/internal/rss"
 )
 
 type Command struct {
@@ -103,4 +108,66 @@ func Users(s *State, cmd Command) error {
 		fmt.Printf("%s\n", user.Name)
 	}
 	return nil
+}
+
+func Agg(s *State, cmd Command) error {
+	feed, err := fetchFeed(context.Background(), "https://www.wagslane.dev/index.xml")
+
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(feed.Channel.Title)
+	fmt.Println(feed.Channel.Link)
+	fmt.Println(feed.Channel.Description)
+	for i := range feed.Channel.Item {
+		fmt.Println(feed.Channel.Item[i].Title)
+		fmt.Println(feed.Channel.Item[i].Link)
+		fmt.Println(feed.Channel.Item[i].Description)
+		fmt.Println(feed.Channel.Item[i].PubDate)
+	}
+
+	return nil
+}
+
+func fetchFeed(ctx context.Context, feedURL string) (*rss.RSSFeed, error) {
+	new_req, err := http.NewRequestWithContext(
+		ctx,
+		"GET",
+		feedURL,
+		nil)
+
+	if err != nil {
+		return nil, err
+	}
+
+	new_req.Header.Set("User-Agent", "gator")
+
+	client := &http.Client{}
+	res, err := client.Do(new_req)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+
+	rssFeed := rss.RSSFeed{}
+
+	data, err := io.ReadAll(res.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := xml.Unmarshal(data, &rssFeed); err != nil {
+		return nil, err
+	}
+
+	rssFeed.Channel.Title = html.UnescapeString(rssFeed.Channel.Title)
+	rssFeed.Channel.Description = html.UnescapeString(rssFeed.Channel.Description)
+
+	for i := range rssFeed.Channel.Item {
+		rssFeed.Channel.Item[i].Title = html.UnescapeString(rssFeed.Channel.Item[i].Title)
+		rssFeed.Channel.Item[i].Description = html.UnescapeString(rssFeed.Channel.Item[i].Description)
+	}
+
+	return &rssFeed, nil
 }
