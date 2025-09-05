@@ -40,6 +40,7 @@ func main() {
 	commands.Register("reset", config.Reset)
 	commands.Register("users", config.Users)
 	commands.Register("agg", config.Agg)
+	commands.Register("addfeed", config.AddFeed)
 
 	args := os.Args[1:] //ignore first argument, that is the program name
 

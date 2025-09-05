@@ -171,3 +171,45 @@ func fetchFeed(ctx context.Context, feedURL string) (*rss.RSSFeed, error) {
 
 	return &rssFeed, nil
 }
+
+func AddFeed(s *State, cmd Command) error {
+	user, err := s.Db.GetUser(context.Background(), s.Cfg.CurrentUserName)
+	if err != nil {
+		return err
+	}
+
+	if len(cmd.ArgsSlice) != 2 {
+		return fmt.Errorf("usage: %s <name> <url>", cmd.Name)
+	}
+
+	name := cmd.ArgsSlice[0]
+	url := cmd.ArgsSlice[1]
+
+	feed, err := s.Db.CreateFeed(context.Background(), database.CreateFeedParams{
+		ID:        uuid.New(),
+		CreatedAt: time.Now().UTC(),
+		UpdatedAt: time.Now().UTC(),
+		UserID:    user.ID,
+		Name:      name,
+		Url:       url,
+	})
+	if err != nil {
+		return fmt.Errorf("couldn't create feed: %w", err)
+	}
+
+	fmt.Println("Feed created successfully:")
+	printFeed(feed)
+	fmt.Println()
+	fmt.Println("==================================")
+
+	return nil
+}
+
+func printFeed(feed database.Feed) {
+	fmt.Printf("* ID: 			%s\n", feed.ID)
+	fmt.Printf("* Created:		%v\n", feed.CreatedAt)
+	fmt.Printf("* Updated:		%v\n", feed.UpdatedAt)
+	fmt.Printf("* Name: 		%s\n", feed.Name)
+	fmt.Printf("* URL:			%s\n", feed.Url)
+	fmt.Printf("* UserID:		%s\n", feed.UserID)
+}
