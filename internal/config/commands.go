@@ -213,3 +213,22 @@ func printFeed(feed database.Feed) {
 	fmt.Printf("* URL:			%s\n", feed.Url)
 	fmt.Printf("* UserID:		%s\n", feed.UserID)
 }
+
+func Feeds(s *State, cmd Command) error {
+	feeds, err := s.Db.GetFeeds(context.Background())
+	if err != nil {
+		return err
+	}
+
+	for _, feed := range feeds {
+		fmt.Printf("* Name:			%s\n", feed.Name)
+		fmt.Printf("* URL: 			%s\n", feed.Url)
+		if feed.Name_2.Valid {
+			fmt.Printf("* UserName:		%s\n", feed.Name_2.String)
+		} else {
+			fmt.Printf("* UserName:		None")
+		}
+	}
+
+	return nil
+}
