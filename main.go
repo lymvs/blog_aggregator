@@ -42,6 +42,8 @@ func main() {
 	commands.Register("agg", config.Agg)
 	commands.Register("addfeed", config.AddFeed)
 	commands.Register("feeds", config.Feeds)
+	commands.Register("follow", config.Follow)
+	commands.Register("following", config.Following)
 
 	args := os.Args[1:] //ignore first argument, that is the program name
 
