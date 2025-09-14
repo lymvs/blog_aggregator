@@ -40,10 +40,11 @@ func main() {
 	commands.Register("reset", config.Reset)
 	commands.Register("users", config.Users)
 	commands.Register("agg", config.Agg)
-	commands.Register("addfeed", config.AddFeed)
+	commands.Register("addfeed", config.MiddlewareLoggedIn(config.AddFeed))
 	commands.Register("feeds", config.Feeds)
-	commands.Register("follow", config.Follow)
-	commands.Register("following", config.Following)
+	commands.Register("follow", config.MiddlewareLoggedIn(config.Follow))
+	commands.Register("following", config.MiddlewareLoggedIn(config.Following))
+	commands.Register("unfollow", config.MiddlewareLoggedIn(config.Unfollow))
 
 	args := os.Args[1:] //ignore first argument, that is the program name
 

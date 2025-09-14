@@ -172,12 +172,7 @@ func fetchFeed(ctx context.Context, feedURL string) (*rss.RSSFeed, error) {
 	return &rssFeed, nil
 }
 
-func AddFeed(s *State, cmd Command) error {
-	user, err := s.Db.GetUser(context.Background(), s.Cfg.CurrentUserName)
-	if err != nil {
-		return err
-	}
-
+func AddFeed(s *State, cmd Command, user database.User) error {
 	if len(cmd.ArgsSlice) != 2 {
 		return fmt.Errorf("usage: %s <name> <url>", cmd.Name)
 	}
@@ -243,7 +238,7 @@ func Feeds(s *State, cmd Command) error {
 	return nil
 }
 
-func Follow(s *State, cmd Command) error {
+func Follow(s *State, cmd Command, user database.User) error {
 	if len(cmd.ArgsSlice) != 1 {
 		return fmt.Errorf("usage: %s <url>", cmd.Name)
 	}
@@ -253,18 +248,11 @@ func Follow(s *State, cmd Command) error {
 		return err
 	}
 
-	userName := s.Cfg.CurrentUserName
-
-	userID, err := s.Db.GetUserByName(context.Background(), userName)
-	if err != nil {
-		return err
-	}
-
 	feedRow, err := s.Db.CreateFeedFollow(context.Background(), database.CreateFeedFollowParams{
 		ID:        uuid.New(),
 		CreatedAt: time.Now().UTC(),
 		UpdatedAt: time.Now().UTC(),
-		UserID:    userID,
+		UserID:    user.ID,
 		FeedID:    feedID,
 	})
 	if err != nil {
@@ -276,20 +264,41 @@ func Follow(s *State, cmd Command) error {
 	return nil
 }
 
-func Following(s *State, cmd Command) error {
-	userName := s.Cfg.CurrentUserName
-	userID, err := s.Db.GetUserByName(context.Background(), userName)
-	if err != nil {
-		return err
-	}
-
-	feedsFollowing, err := s.Db.GetFeedFollowsForUser(context.Background(), userID)
+func Following(s *State, cmd Command, user database.User) error {
+	feedsFollowing, err := s.Db.GetFeedFollowsForUser(context.Background(), user.ID)
 	if err != nil {
 		return err
 	}
 
 	for _, feed := range feedsFollowing {
 		fmt.Println(feed.FeedName)
+	}
+
+	return nil
+}
+
+func MiddlewareLoggedIn(handler func(s *State, cmd Command, user database.User) error) func(s *State, cmd Command) error {
+	return func(s *State, cmd Command) error {
+		user, err := s.Db.GetUser(context.Background(), s.Cfg.CurrentUserName)
+		if err != nil {
+			return err
+		}
+
+		return handler(s, cmd, user)
+	}
+}
+
+func Unfollow(s *State, cmd Command, user database.User) error {
+	feedID, err := s.Db.GetFeedByURL(context.Background(), cmd.ArgsSlice[0])
+	if err != nil {
+		return err
+	}
+
+	if err := s.Db.DeleteFeedFollow(context.Background(), database.DeleteFeedFollowParams{
+		UserID: user.ID,
+		FeedID: feedID,
+	}); err != nil {
+		return err
 	}
 
 	return nil
